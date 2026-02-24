@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Commission Capture System — Polly AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #060608;
+    --white: #F5F4F0;
+    --orange: #FF5C00;
+    --orange-dim: #CC4900;
+    --gray: #1A1A1F;
+    --gray-mid: #2E2E36;
+    --gray-light: #6B6B7A;
+    --accent: #FFD166;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    overflow-x: hidden;
+  }
+
+  /* NOISE TEXTURE OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.4;
+  }
+
+  /* NAV */
+  nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 28px 60px;
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    background: linear-gradient(to bottom, rgba(6,6,8,0.95), transparent);
+  }
+
+  .nav-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 18px;
+    letter-spacing: -0.5px;
+    color: var(--white);
+  }
+
+  .nav-logo span { color: var(--orange); }
+
+  .nav-cta {
+    background: var(--orange);
+    color: var(--black);
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    padding: 12px 24px;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.2s, transform 0.1s;
+    text-transform: uppercase;
+  }
+
+  .nav-cta:hover { background: var(--accent); transform: translateY(-1px); }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 140px 60px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-bg {
+    position: absolute;
+    top: -200px; right: -200px;
+    width: 700px; height: 700px;
+    background: radial-gradient(circle, rgba(255,92,0,0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-bg-2 {
+    position: absolute;
+    bottom: -100px; left: -100px;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(255,209,102,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-label {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--orange);
+    margin-bottom: 28px;
+    opacity: 0;
+    animation: fadeUp 0.7s ease forwards 0.2s;
+  }
+
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(52px, 7vw, 96px);
+    line-height: 0.95;
+    letter-spacing: -3px;
+    max-width: 900px;
+    margin-bottom: 32px;
+    opacity: 0;
+    animation: fadeUp 0.7s ease forwards 0.4s;
+  }
+
+  .hero h1 em {
+    font-style: normal;
+    color: var(--orange);
+    position: relative;
+  }
+
+  .hero-sub {
+    font-size: 18px;
+    line-height: 1.6;
+    color: rgba(245,244,240,0.6);
+    max-width: 520px;
+    margin-bottom: 48px;
+    opacity: 0;
+    animation: fadeUp 0.7s ease forwards 0.6s;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    opacity: 0;
+    animation: fadeUp 0.7s ease forwards 0.8s;
+  }
+
+  .btn-primary {
+    background: var(--orange);
+    color: var(--black);
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    padding: 18px 40px;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+    display: inline-block;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .btn-primary:hover { background: var(--accent); transform: translateY(-2px); }
+
+  .btn-secondary {
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    text-decoration: none;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-secondary:hover { opacity: 1; }
+
+  /* PROOF BAR */
+  .proof-bar {
+    background: var(--gray);
+    border-top: 1px solid rgba(255,255,255,0.06);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    padding: 24px 60px;
+    display: flex;
+    gap: 60px;
+    align-items: center;
+    overflow: hidden;
+  }
+
+  .proof-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    white-space: nowrap;
+  }
+
+  .proof-number {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 28px;
+    color: var(--orange);
+    letter-spacing: -1px;
+  }
+
+  .proof-label {
+    font-size: 12px;
+    color: rgba(245,244,240,0.45);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+  }
+
+  .proof-divider {
+    width: 1px;
+    height: 40px;
+    background: rgba(255,255,255,0.1);
+  }
+
+  /* PROBLEM SECTION */
+  .section {
+    padding: 120px 60px;
+  }
+
+  .section-label {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--orange);
+    margin-bottom: 20px;
+  }
+
+  .section h2 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(36px, 4vw, 56px);
+    letter-spacing: -2px;
+    line-height: 1.05;
+    margin-bottom: 24px;
+  }
+
+  /* PROBLEM CARDS */
+  .problem-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    margin-top: 60px;
+  }
+
+  .problem-card {
+    background: var(--gray);
+    padding: 40px;
+    border: 1px solid rgba(255,255,255,0.04);
+    transition: border-color 0.3s;
+  }
+
+  .problem-card:hover { border-color: rgba(255,92,0,0.3); }
+
+  .problem-icon {
+    font-size: 32px;
+    margin-bottom: 20px;
+  }
+
+  .problem-card h3 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    margin-bottom: 12px;
+    letter-spacing: -0.5px;
+  }
+
+  .problem-card p {
+    font-size: 14px;
+    line-height: 1.7;
+    color: rgba(245,244,240,0.5);
+  }
+
+  /* HOW IT WORKS */
+  .how-section {
+    padding: 120px 60px;
+    background: var(--gray);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .how-section::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(255,92,0,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    margin-top: 60px;
+  }
+
+  .step {
+    padding: 48px 40px;
+    background: var(--black);
+    position: relative;
+    border: 1px solid rgba(255,255,255,0.04);
+  }
+
+  .step-number {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 72px;
+    color: rgba(255,92,0,0.12);
+    line-height: 1;
+    margin-bottom: 24px;
+    letter-spacing: -3px;
+  }
+
+  .step h3 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    margin-bottom: 12px;
+    letter-spacing: -0.5px;
+  }
+
+  .step p {
+    font-size: 14px;
+    line-height: 1.7;
+    color: rgba(245,244,240,0.5);
+  }
+
+  /* PROOF SECTION */
+  .proof-section {
+    padding: 120px 60px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .proof-card {
+    background: var(--gray);
+    border: 1px solid rgba(255,92,0,0.2);
+    padding: 60px;
+    max-width: 800px;
+    position: relative;
+  }
+
+  .proof-card::before {
+    content: '"';
+    font-family: 'Syne', sans-serif;
+    font-size: 160px;
+    font-weight: 800;
+    color: rgba(255,92,0,0.1);
+    position: absolute;
+    top: -20px; left: 40px;
+    line-height: 1;
+  }
+
+  .proof-quote {
+    font-size: 22px;
+    line-height: 1.6;
+    margin-bottom: 32px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .proof-quote strong {
+    color: var(--orange);
+    font-weight: 500;
+  }
+
+  .proof-meta {
+    font-size: 13px;
+    color: rgba(245,244,240,0.4);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+
+  /* PRICING */
+  .pricing-section {
+    padding: 120px 60px;
+    background: var(--gray);
+  }
+
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2px;
+    margin-top: 60px;
+    max-width: 800px;
+  }
+
+  .pricing-card {
+    background: var(--black);
+    padding: 48px;
+    border: 1px solid rgba(255,255,255,0.04);
+    position: relative;
+  }
+
+  .pricing-card.featured {
+    border-color: var(--orange);
+  }
+
+  .pricing-badge {
+    position: absolute;
+    top: -1px; right: 32px;
+    background: var(--orange);
+    color: var(--black);
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 6px 14px;
+  }
+
+  .pricing-label {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gray-light);
+    margin-bottom: 16px;
+  }
+
+  .pricing-price {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 48px;
+    letter-spacing: -2px;
+    margin-bottom: 4px;
+    color: var(--white);
+  }
+
+  .pricing-price span {
+    font-size: 18px;
+    font-weight: 400;
+    color: var(--gray-light);
+    letter-spacing: 0;
+  }
+
+  .pricing-desc {
+    font-size: 13px;
+    color: rgba(245,244,240,0.4);
+    margin-bottom: 32px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .pricing-features {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .pricing-features li {
+    font-size: 14px;
+    color: rgba(245,244,240,0.7);
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .pricing-features li::before {
+    content: '→';
+    color: var(--orange);
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  /* CTA SECTION */
+  .cta-section {
+    padding: 140px 60px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cta-section::before {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 800px; height: 400px;
+    background: radial-gradient(ellipse, rgba(255,92,0,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .cta-section h2 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(40px, 5vw, 72px);
+    letter-spacing: -3px;
+    line-height: 1;
+    margin-bottom: 24px;
+    position: relative;
+  }
+
+  .cta-section p {
+    font-size: 18px;
+    color: rgba(245,244,240,0.5);
+    margin-bottom: 48px;
+    position: relative;
+  }
+
+  /* VIDEO PLACEHOLDER */
+  .video-section {
+    padding: 0 60px 120px;
+  }
+
+  .video-container {
+    background: var(--gray);
+    border: 1px solid rgba(255,255,255,0.06);
+    aspect-ratio: 16/9;
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 16px;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.3s;
+  }
+
+  .video-container:hover { border-color: rgba(255,92,0,0.4); }
+
+  .video-container::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, rgba(255,92,0,0.06) 0%, transparent 70%);
+  }
+
+  .play-button {
+    width: 72px; height: 72px;
+    background: var(--orange);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+    transition: transform 0.2s, background 0.2s;
+  }
+
+  .video-container:hover .play-button { transform: scale(1.1); background: var(--accent); }
+
+  .play-button svg { fill: var(--black); width: 24px; }
+
+  .video-label {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(245,244,240,0.4);
+    position: relative;
+    z-index: 1;
+  }
+
+  /* FOOTER */
+  footer {
+    padding: 40px 60px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  footer .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 16px;
+  }
+
+  footer .logo span { color: var(--orange); }
+
+  footer p {
+    font-size: 12px;
+    color: rgba(245,244,240,0.3);
+  }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(32px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    nav, .hero, .section, .how-section, .proof-section, .pricing-section, .cta-section, .video-section, footer {
+      padding-left: 24px;
+      padding-right: 24px;
+    }
+    .problem-grid, .steps { grid-template-columns: 1fr; }
+    .pricing-grid { grid-template-columns: 1fr; }
+    .proof-bar { gap: 32px; flex-wrap: wrap; }
+    nav { padding: 20px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Polly<span>AI</span></div>
+  <a href="#book-demo" class="nav-cta">Book a Demo</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-bg-2"></div>
+  <div class="hero-label">Polly AI — Commission Capture System</div>
+  <h1>Stop Leaving<br>Money on the<br><em>Table.</em></h1>
+  <p class="hero-sub">Most insurance agencies are owed more than they're being paid. Our AI system finds every discrepancy, automatically — so you get paid what you're owed.</p>
+  <div class="hero-actions">
+    <a href="#book-demo" class="btn-primary">Book a Free Demo</a>
+    <a href="#how-it-works" class="btn-secondary">See how it works →</a>
+  </div>
+</section>
+
+<!-- PROOF BAR -->
+<div class="proof-bar">
+  <div class="proof-item">
+    <div class="proof-number">$5,000+</div>
+    <div class="proof-label">Recovered in 7 months</div>
+  </div>
+  <div class="proof-divider"></div>
+  <div class="proof-item">
+    <div class="proof-number">95%+</div>
+    <div class="proof-label">Reconciliation accuracy</div>
+  </div>
+  <div class="proof-divider"></div>
+  <div class="proof-item">
+    <div class="proof-number">Any Format</div>
+    <div class="proof-label">PDF, XL, CSV, Google Doc</div>
+  </div>
+  <div class="proof-divider"></div>
+  <div class="proof-item">
+    <div class="proof-number">Minutes</div>
+    <div class="proof-label">Not hours or days</div>
+  </div>
+</div>
+
+<!-- PROBLEM SECTION -->
+<section class="section">
+  <div class="section-label">The Problem</div>
+  <h2>Your carriers are<br>not always paying<br>you correctly.</h2>
+  <div class="problem-grid">
+    <div class="problem-card reveal">
+      <div class="problem-icon">📄</div>
+      <h3>Statements in Every Format</h3>
+      <p>PDFs, spreadsheets, Google Docs, even iMessages. Every carrier sends data differently and reconciling it manually takes hours.</p>
+    </div>
+    <div class="problem-card reveal">
+      <div class="problem-icon">💸</div>
+      <h3>Missed Payments You Never Catch</h3>
+      <p>Small discrepancies compound over months. Most agencies never discover what they're owed because they simply don't have the time to check.</p>
+    </div>
+    <div class="problem-card reveal">
+      <div class="problem-icon">⏱️</div>
+      <h3>Hours Lost Every Month</h3>
+      <p>Your team spends 20-40 hours a month on manual reconciliation. That's time that should be spent growing your book of business.</p>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-section" id="how-it-works">
+  <div class="section-label">How It Works</div>
+  <h2>Three steps.<br>Zero manual work.</h2>
+  <div class="steps">
+    <div class="step reveal">
+      <div class="step-number">01</div>
+      <h3>Send Your Statements</h3>
+      <p>Upload your commission statements in any format — PDF, XL, CSV, Google Doc. We configure the system specifically around your carriers.</p>
+    </div>
+    <div class="step reveal">
+      <div class="step-number">02</div>
+      <h3>AI Does the Work</h3>
+      <p>Our system reads every line, matches it against what you're owed, and automatically flags every discrepancy and missed payment.</p>
+    </div>
+    <div class="step reveal">
+      <div class="step-number">03</div>
+      <h3>Get Your Report</h3>
+      <p>You receive a clean reconciliation report showing exactly what's been paid correctly, what's short, and what's missing entirely.</p>
+    </div>
+  </div>
+</section>
+
+<!-- AI INTERFACE SECTION -->
+<section class="section" style="background: var(--black); padding-top: 0;">
+  <div class="section-label">Beyond Reconciliation</div>
+  <h2>Your commission data<br>becomes a <em style="font-style:normal; color: var(--orange);">living database.</em></h2>
+  <p style="font-size: 18px; color: rgba(245,244,240,0.5); max-width: 560px; margin: 24px 0 60px; line-height: 1.7;">Every statement we process gets stored and indexed. Then you can ask questions about your own data in plain English — no reports to run, no spreadsheets to dig through.</p>
+
+  <div class="chat-demo reveal" style="max-width: 700px; background: var(--gray); border: 1px solid rgba(255,255,255,0.06); padding: 40px; position: relative;">
+    <div style="font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--gray-light); margin-bottom: 32px;">AI Interface — Live Example</div>
+
+    <div style="display: flex; flex-direction: column; gap: 20px;">
+      <div style="display: flex; justify-content: flex-end;">
+        <div style="background: var(--orange); color: var(--black); padding: 14px 20px; font-size: 14px; max-width: 80%; line-height: 1.5;">"What did Progressive owe us in Q3 vs what they actually paid?"</div>
+      </div>
+      <div style="display: flex; justify-content: flex-start;">
+        <div style="background: var(--black); border: 1px solid rgba(255,255,255,0.08); padding: 14px 20px; font-size: 14px; max-width: 80%; line-height: 1.6; color: rgba(245,244,240,0.75);">Progressive owed <strong style="color: var(--white);">$14,820</strong> in Q3. They paid <strong style="color: var(--white);">$13,440</strong>. That's a shortfall of <strong style="color: var(--orange);">$1,380</strong> across 3 policies — I've flagged the details in your Q3 report.</div>
+      </div>
+      <div style="display: flex; justify-content: flex-end;">
+        <div style="background: var(--orange); color: var(--black); padding: 14px 20px; font-size: 14px; max-width: 80%; line-height: 1.5;">"Which carrier has had the most errors this year?"</div>
+      </div>
+      <div style="display: flex; justify-content: flex-start;">
+        <div style="background: var(--black); border: 1px solid rgba(255,255,255,0.08); padding: 14px 20px; font-size: 14px; max-width: 80%; line-height: 1.6; color: rgba(245,244,240,0.75);">State Farm has had <strong style="color: var(--white);">7 discrepancies</strong> this year totalling <strong style="color: var(--orange);">$2,940</strong> in underpayments. Would you like me to draft a dispute summary you can send them?</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="problem-grid reveal" style="margin-top: 40px; grid-template-columns: repeat(3, 1fr);">
+    <div class="problem-card">
+      <div class="problem-icon">💬</div>
+      <h3>Ask in Plain English</h3>
+      <p>No dashboards to learn. Just ask what you want to know about your commissions and get a direct answer.</p>
+    </div>
+    <div class="problem-card">
+      <div class="problem-icon">🗂️</div>
+      <h3>Every Statement Indexed</h3>
+      <p>All your historical data is stored and searchable. Go back months or years and find any transaction instantly.</p>
+    </div>
+    <div class="problem-card">
+      <div class="problem-icon">📨</div>
+      <h3>Draft Dispute Emails</h3>
+      <p>When a carrier underpays, the system can draft the dispute communication for you with the exact figures attached.</p>
+    </div>
+  </div>
+</section>
+
+<!-- VIDEO SECTION -->
+<div class="video-section" style="padding-top: 120px;">
+  <div class="section-label" style="text-align:center; margin-bottom: 16px;">See It In Action</div>
+  <h2 class="reveal" style="font-family: 'Syne', sans-serif; font-weight: 800; font-size: clamp(28px, 3vw, 40px); letter-spacing: -1.5px; text-align: center; margin-bottom: 48px;">Watch the Commission<br>Capture System work.</h2>
+  <div class="video-container reveal" onclick="alert('Add your Loom video embed here')">
+    <div class="play-button">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M8 5v14l11-7z"/></svg>
+    </div>
+    <div class="video-label">Watch 3-minute demo</div>
+  </div>
+</div>
+
+<!-- PROOF SECTION -->
+<section class="proof-section">
+  <div class="section-label">Real Results</div>
+  <div class="proof-card reveal">
+    <p class="proof-quote">We recovered <strong>over $5,000 in underpaid commissions</strong> across just 7 months of statements we thought had already been processed correctly. The system found discrepancies we would never have caught manually.</p>
+    <p class="proof-meta">Independent Agency — California, USA</p>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing-section" id="pricing">
+  <div class="section-label">Pricing</div>
+  <h2>Simple, transparent<br>pricing.</h2>
+  <div class="pricing-grid">
+    <div class="pricing-card reveal">
+      <div class="pricing-label">Setup</div>
+      <div class="pricing-price">€2,500 <span>one-time</span></div>
+      <p class="pricing-desc">Everything needed to get your system live and configured for your specific carriers.</p>
+      <ul class="pricing-features">
+        <li>Full carrier configuration</li>
+        <li>3 months historical data processed free</li>
+        <li>Team training included</li>
+        <li>First month personally monitored</li>
+      </ul>
+    </div>
+    <div class="pricing-card featured reveal">
+      <div class="pricing-badge">Most Popular</div>
+      <div class="pricing-label">Monthly</div>
+      <div class="pricing-price">€750 <span>/month</span></div>
+      <p class="pricing-desc">Ongoing automated reconciliation across all your carriers, every month.</p>
+      <ul class="pricing-features">
+        <li>Unlimited statement processing</li>
+        <li>AI reconciliation at 95%+ accuracy</li>
+        <li>Exception flagging and resolution</li>
+        <li>Clean monthly reports</li>
+        <li>Full money-back guarantee</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section" id="book-demo">
+  <h2 class="reveal">Find out what<br>you're owed.</h2>
+  <p class="reveal">Book a free 20-minute demo. We'll show you exactly how it works for your agency.</p>
+  <a href="https://calendly.com" class="btn-primary reveal" style="font-size: 16px; padding: 20px 52px;">Book Your Free Demo</a>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="logo">Polly<span>AI</span></div>
+  <p>© 2026 Polly AI</p>
+</footer>
+
+<script>
+  // Scroll reveal
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
