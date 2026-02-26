@@ -3,840 +3,1378 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Commission Capture System — Polly AI</title>
+<title>Polly AI — Commission Capture System</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --black: #060608;
-    --white: #F5F4F0;
-    --orange: #FF5C00;
-    --orange-dim: #CC4900;
-    --gray: #1A1A1F;
-    --gray-mid: #2E2E36;
-    --gray-light: #6B6B7A;
-    --accent: #FFD166;
-  }
-
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  html { scroll-behavior: smooth; }
-
-  body {
-    background: var(--black);
-    color: var(--white);
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 300;
-    overflow-x: hidden;
-  }
-
-  /* NOISE TEXTURE OVERLAY */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-    pointer-events: none;
-    z-index: 1000;
-    opacity: 0.4;
-  }
-
-  /* NAV */
-  nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 28px 60px;
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    z-index: 100;
-    background: linear-gradient(to bottom, rgba(6,6,8,0.95), transparent);
-  }
-
-  .nav-logo {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 18px;
-    letter-spacing: -0.5px;
-    color: var(--white);
-  }
-
-  .nav-logo span { color: var(--orange); }
-
-  .nav-cta {
-    background: var(--orange);
-    color: var(--black);
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 13px;
-    letter-spacing: 0.5px;
-    padding: 12px 24px;
-    border: none;
-    cursor: pointer;
-    text-decoration: none;
-    transition: background 0.2s, transform 0.1s;
-    text-transform: uppercase;
-  }
-
-  .nav-cta:hover { background: var(--accent); transform: translateY(-1px); }
-
-  /* HERO */
-  .hero {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: 140px 60px 80px;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .hero-bg {
-    position: absolute;
-    top: -200px; right: -200px;
-    width: 700px; height: 700px;
-    background: radial-gradient(circle, rgba(255,92,0,0.15) 0%, transparent 70%);
-    pointer-events: none;
-  }
-
-  .hero-bg-2 {
-    position: absolute;
-    bottom: -100px; left: -100px;
-    width: 500px; height: 500px;
-    background: radial-gradient(circle, rgba(255,209,102,0.06) 0%, transparent 70%);
-    pointer-events: none;
-  }
-
-  .hero-label {
-    font-family: 'Syne', sans-serif;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: var(--orange);
-    margin-bottom: 28px;
-    opacity: 0;
-    animation: fadeUp 0.7s ease forwards 0.2s;
-  }
-
-  .hero h1 {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: clamp(52px, 7vw, 96px);
-    line-height: 0.95;
-    letter-spacing: -3px;
-    max-width: 900px;
-    margin-bottom: 32px;
-    opacity: 0;
-    animation: fadeUp 0.7s ease forwards 0.4s;
-  }
-
-  .hero h1 em {
-    font-style: normal;
-    color: var(--orange);
-    position: relative;
-  }
-
-  .hero-sub {
-    font-size: 18px;
-    line-height: 1.6;
-    color: rgba(245,244,240,0.6);
-    max-width: 520px;
-    margin-bottom: 48px;
-    opacity: 0;
-    animation: fadeUp 0.7s ease forwards 0.6s;
-  }
-
-  .hero-actions {
-    display: flex;
-    gap: 16px;
-    align-items: center;
-    opacity: 0;
-    animation: fadeUp 0.7s ease forwards 0.8s;
-  }
-
-  .btn-primary {
-    background: var(--orange);
-    color: var(--black);
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 15px;
-    padding: 18px 40px;
-    border: none;
-    cursor: pointer;
-    text-decoration: none;
-    transition: all 0.2s;
-    display: inline-block;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  .btn-primary:hover { background: var(--accent); transform: translateY(-2px); }
-
-  .btn-secondary {
-    color: var(--white);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 15px;
-    text-decoration: none;
-    opacity: 0.6;
-    transition: opacity 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .btn-secondary:hover { opacity: 1; }
-
-  /* PROOF BAR */
-  .proof-bar {
-    background: var(--gray);
-    border-top: 1px solid rgba(255,255,255,0.06);
-    border-bottom: 1px solid rgba(255,255,255,0.06);
-    padding: 24px 60px;
-    display: flex;
-    gap: 60px;
-    align-items: center;
-    overflow: hidden;
-  }
-
-  .proof-item {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    white-space: nowrap;
-  }
-
-  .proof-number {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 28px;
-    color: var(--orange);
-    letter-spacing: -1px;
-  }
-
-  .proof-label {
-    font-size: 12px;
-    color: rgba(245,244,240,0.45);
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-  }
-
-  .proof-divider {
-    width: 1px;
-    height: 40px;
-    background: rgba(255,255,255,0.1);
-  }
-
-  /* PROBLEM SECTION */
-  .section {
-    padding: 120px 60px;
-  }
-
-  .section-label {
-    font-family: 'Syne', sans-serif;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: var(--orange);
-    margin-bottom: 20px;
-  }
-
-  .section h2 {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: clamp(36px, 4vw, 56px);
-    letter-spacing: -2px;
-    line-height: 1.05;
-    margin-bottom: 24px;
-  }
-
-  /* PROBLEM CARDS */
-  .problem-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 2px;
-    margin-top: 60px;
-  }
-
-  .problem-card {
-    background: var(--gray);
-    padding: 40px;
-    border: 1px solid rgba(255,255,255,0.04);
-    transition: border-color 0.3s;
-  }
-
-  .problem-card:hover { border-color: rgba(255,92,0,0.3); }
-
-  .problem-icon {
-    font-size: 32px;
-    margin-bottom: 20px;
-  }
-
-  .problem-card h3 {
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 18px;
-    margin-bottom: 12px;
-    letter-spacing: -0.5px;
-  }
-
-  .problem-card p {
-    font-size: 14px;
-    line-height: 1.7;
-    color: rgba(245,244,240,0.5);
-  }
-
-  /* HOW IT WORKS */
-  .how-section {
-    padding: 120px 60px;
-    background: var(--gray);
-    position: relative;
-    overflow: hidden;
-  }
-
-  .how-section::before {
-    content: '';
-    position: absolute;
-    top: 0; right: 0;
-    width: 600px; height: 600px;
-    background: radial-gradient(circle, rgba(255,92,0,0.08) 0%, transparent 70%);
-    pointer-events: none;
-  }
-
-  .steps {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 2px;
-    margin-top: 60px;
-  }
-
-  .step {
-    padding: 48px 40px;
-    background: var(--black);
-    position: relative;
-    border: 1px solid rgba(255,255,255,0.04);
-  }
-
-  .step-number {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 72px;
-    color: rgba(255,92,0,0.12);
-    line-height: 1;
-    margin-bottom: 24px;
-    letter-spacing: -3px;
-  }
-
-  .step h3 {
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 20px;
-    margin-bottom: 12px;
-    letter-spacing: -0.5px;
-  }
-
-  .step p {
-    font-size: 14px;
-    line-height: 1.7;
-    color: rgba(245,244,240,0.5);
-  }
-
-  /* PROOF SECTION */
-  .proof-section {
-    padding: 120px 60px;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .proof-card {
-    background: var(--gray);
-    border: 1px solid rgba(255,92,0,0.2);
-    padding: 60px;
-    max-width: 800px;
-    position: relative;
-  }
-
-  .proof-card::before {
-    content: '"';
-    font-family: 'Syne', sans-serif;
-    font-size: 160px;
-    font-weight: 800;
-    color: rgba(255,92,0,0.1);
-    position: absolute;
-    top: -20px; left: 40px;
-    line-height: 1;
-  }
-
-  .proof-quote {
-    font-size: 22px;
-    line-height: 1.6;
-    margin-bottom: 32px;
-    position: relative;
-    z-index: 1;
-  }
-
-  .proof-quote strong {
-    color: var(--orange);
-    font-weight: 500;
-  }
-
-  .proof-meta {
-    font-size: 13px;
-    color: rgba(245,244,240,0.4);
-    text-transform: uppercase;
-    letter-spacing: 2px;
-  }
-
-  /* PRICING */
-  .pricing-section {
-    padding: 120px 60px;
-    background: var(--gray);
-  }
-
-  .pricing-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 2px;
-    margin-top: 60px;
-    max-width: 800px;
-  }
-
-  .pricing-card {
-    background: var(--black);
-    padding: 48px;
-    border: 1px solid rgba(255,255,255,0.04);
-    position: relative;
-  }
-
-  .pricing-card.featured {
-    border-color: var(--orange);
-  }
-
-  .pricing-badge {
-    position: absolute;
-    top: -1px; right: 32px;
-    background: var(--orange);
-    color: var(--black);
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 10px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    padding: 6px 14px;
-  }
-
-  .pricing-label {
-    font-family: 'Syne', sans-serif;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: var(--gray-light);
-    margin-bottom: 16px;
-  }
-
-  .pricing-price {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 48px;
-    letter-spacing: -2px;
-    margin-bottom: 4px;
-    color: var(--white);
-  }
-
-  .pricing-price span {
-    font-size: 18px;
-    font-weight: 400;
-    color: var(--gray-light);
-    letter-spacing: 0;
-  }
-
-  .pricing-desc {
-    font-size: 13px;
-    color: rgba(245,244,240,0.4);
-    margin-bottom: 32px;
-    padding-bottom: 32px;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
-  }
-
-  .pricing-features {
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-  }
-
-  .pricing-features li {
-    font-size: 14px;
-    color: rgba(245,244,240,0.7);
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-  }
-
-  .pricing-features li::before {
-    content: '→';
-    color: var(--orange);
-    font-weight: 700;
-    flex-shrink: 0;
-  }
-
-  /* CTA SECTION */
-  .cta-section {
-    padding: 140px 60px;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .cta-section::before {
-    content: '';
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    width: 800px; height: 400px;
-    background: radial-gradient(ellipse, rgba(255,92,0,0.12) 0%, transparent 70%);
-    pointer-events: none;
-  }
-
-  .cta-section h2 {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: clamp(40px, 5vw, 72px);
-    letter-spacing: -3px;
-    line-height: 1;
-    margin-bottom: 24px;
-    position: relative;
-  }
-
-  .cta-section p {
-    font-size: 18px;
-    color: rgba(245,244,240,0.5);
-    margin-bottom: 48px;
-    position: relative;
-  }
-
-  /* VIDEO PLACEHOLDER */
-  .video-section {
-    padding: 0 60px 120px;
-  }
-
-  .video-container {
-    background: var(--gray);
-    border: 1px solid rgba(255,255,255,0.06);
-    aspect-ratio: 16/9;
-    max-width: 900px;
-    margin: 0 auto;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    gap: 16px;
-    position: relative;
-    overflow: hidden;
-    cursor: pointer;
-    transition: border-color 0.3s;
-  }
-
-  .video-container:hover { border-color: rgba(255,92,0,0.4); }
-
-  .video-container::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(circle at center, rgba(255,92,0,0.06) 0%, transparent 70%);
-  }
-
-  .play-button {
-    width: 72px; height: 72px;
-    background: var(--orange);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    z-index: 1;
-    transition: transform 0.2s, background 0.2s;
-  }
-
-  .video-container:hover .play-button { transform: scale(1.1); background: var(--accent); }
-
-  .play-button svg { fill: var(--black); width: 24px; }
-
-  .video-label {
-    font-family: 'Syne', sans-serif;
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: rgba(245,244,240,0.4);
-    position: relative;
-    z-index: 1;
-  }
-
-  /* FOOTER */
-  footer {
-    padding: 40px 60px;
-    border-top: 1px solid rgba(255,255,255,0.06);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  footer .logo {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 16px;
-  }
-
-  footer .logo span { color: var(--orange); }
-
-  footer p {
-    font-size: 12px;
-    color: rgba(245,244,240,0.3);
-  }
-
-  /* ANIMATIONS */
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(24px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .reveal {
-    opacity: 0;
-    transform: translateY(32px);
-    transition: opacity 0.7s ease, transform 0.7s ease;
-  }
-
-  .reveal.visible {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  /* RESPONSIVE */
-  @media (max-width: 900px) {
-    nav, .hero, .section, .how-section, .proof-section, .pricing-section, .cta-section, .video-section, footer {
-      padding-left: 24px;
-      padding-right: 24px;
-    }
-    .problem-grid, .steps { grid-template-columns: 1fr; }
-    .pricing-grid { grid-template-columns: 1fr; }
-    .proof-bar { gap: 32px; flex-wrap: wrap; }
-    nav { padding: 20px 24px; }
-  }
+:root {
+  --bg: #08090C;
+  --surface: #111318;
+  --surface2: #1A1D26;
+  --border: rgba(255,255,255,0.07);
+  --border-bright: rgba(255,255,255,0.12);
+  --orange: #FF6B2B;
+  --orange-glow: rgba(255,107,43,0.18);
+  --orange-light: #FF8F5E;
+  --green: #22C55E;
+  --red: #EF4444;
+  --yellow: #F59E0B;
+  --text: #EEEDF0;
+  --text-dim: rgba(238,237,240,0.55);
+  --text-dimmer: rgba(238,237,240,0.3);
+  --mono: 'IBM Plex Mono', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Outfit', sans-serif;
+  font-weight: 300;
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+
+/* GRAIN */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* NAV */
+nav {
+  position: fixed; top: 0; left: 0; right: 0;
+  z-index: 100;
+  padding: 20px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  backdrop-filter: blur(20px);
+  background: rgba(8,9,12,0.8);
+  border-bottom: 1px solid var(--border);
+}
+
+.logo {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 800;
+  font-size: 20px;
+  letter-spacing: -0.5px;
+  color: var(--text);
+}
+.logo span { color: var(--orange); }
+
+.nav-right { display: flex; align-items: center; gap: 24px; }
+
+.nav-link {
+  font-size: 14px;
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.nav-link:hover { color: var(--text); }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s;
+  letter-spacing: -0.2px;
+}
+
+.btn-orange {
+  background: var(--orange);
+  color: #fff;
+}
+.btn-orange:hover { background: var(--orange-light); transform: translateY(-1px); }
+
+.btn-outline {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border-bright);
+}
+.btn-outline:hover { border-color: var(--orange); color: var(--orange); }
+
+.btn-lg {
+  padding: 16px 36px;
+  font-size: 16px;
+}
+
+/* HERO */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 120px 40px 80px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-glow {
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 700px;
+  height: 400px;
+  background: radial-gradient(ellipse, rgba(255,107,43,0.14) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.hero-grid {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 0%, transparent 100%);
+  pointer-events: none;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  background: rgba(255,107,43,0.1);
+  border: 1px solid rgba(255,107,43,0.25);
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--orange-light);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 32px;
+  opacity: 0;
+  animation: fadeUp 0.6s ease forwards 0.1s;
+}
+
+.hero-badge::before {
+  content: '';
+  width: 6px; height: 6px;
+  background: var(--orange);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+.hero h1 {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 800;
+  font-size: clamp(44px, 6.5vw, 88px);
+  line-height: 1.0;
+  letter-spacing: -3px;
+  margin-bottom: 28px;
+  max-width: 900px;
+  opacity: 0;
+  animation: fadeUp 0.6s ease forwards 0.25s;
+}
+
+.hero h1 .highlight {
+  color: var(--orange);
+  position: relative;
+}
+
+.hero-sub {
+  font-size: clamp(16px, 2vw, 20px);
+  color: var(--text-dim);
+  max-width: 560px;
+  margin: 0 auto 48px;
+  line-height: 1.7;
+  opacity: 0;
+  animation: fadeUp 0.6s ease forwards 0.4s;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+  opacity: 0;
+  animation: fadeUp 0.6s ease forwards 0.55s;
+}
+
+.hero-disclaimer {
+  font-size: 13px;
+  color: var(--text-dimmer);
+  opacity: 0;
+  animation: fadeUp 0.6s ease forwards 0.7s;
+}
+.hero-disclaimer strong { color: var(--green); font-weight: 500; }
+
+/* STATS */
+.stats-bar {
+  display: flex;
+  justify-content: center;
+  gap: 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  overflow-x: auto;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 48px;
+  border-right: 1px solid var(--border);
+  gap: 6px;
+  flex: 1;
+  min-width: 160px;
+}
+.stat:last-child { border-right: none; }
+
+.stat-value {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 800;
+  font-size: 36px;
+  letter-spacing: -2px;
+  color: var(--text);
+}
+.stat-value .stat-accent { color: var(--orange); }
+
+.stat-label {
+  font-size: 12px;
+  color: var(--text-dimmer);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  text-align: center;
+}
+
+/* SECTIONS */
+.section {
+  padding: 100px 40px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.section-center { text-align: center; }
+
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--orange);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+.label::before {
+  content: '';
+  width: 20px; height: 1px;
+  background: var(--orange);
+}
+
+h2 {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 800;
+  font-size: clamp(32px, 4vw, 52px);
+  letter-spacing: -2px;
+  line-height: 1.05;
+  margin-bottom: 16px;
+}
+
+.section-sub {
+  font-size: 18px;
+  color: var(--text-dim);
+  max-width: 560px;
+  margin: 0 auto 60px;
+  line-height: 1.7;
+}
+
+/* PROBLEM VISUAL */
+.problem-visual {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  margin-top: 60px;
+}
+
+.problem-side {
+  padding: 48px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.problem-side.bad { border-top: 3px solid var(--red); }
+.problem-side.good { border-top: 3px solid var(--green); }
+
+.side-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 28px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.side-label.bad { color: var(--red); }
+.side-label.good { color: var(--green); }
+
+.side-items {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.side-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 15px;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+.side-item .icon {
+  width: 20px; height: 20px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+/* RECONCILIATION MOCKUP */
+.mockup-container {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0;
+  overflow: hidden;
+  margin-top: 60px;
+  box-shadow: 0 40px 120px rgba(0,0,0,0.5);
+}
+
+.mockup-bar {
+  background: var(--surface2);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.mockup-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+}
+
+.mockup-title {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text-dimmer);
+  margin-left: 8px;
+}
+
+.mockup-body { padding: 28px; }
+
+.recon-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.recon-title {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: -0.5px;
+}
+
+.recon-date {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text-dimmer);
+}
+
+.recon-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.recon-stat {
+  background: var(--bg);
+  padding: 16px;
+  border: 1px solid var(--border);
+}
+
+.recon-stat-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-dimmer);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.recon-stat-value {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: -1px;
+}
+
+.recon-stat-value.green { color: var(--green); }
+.recon-stat-value.red { color: var(--red); }
+.recon-stat-value.orange { color: var(--orange); }
+
+.recon-table { width: 100%; border-collapse: collapse; }
+
+.recon-table th {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-dimmer);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.recon-table td {
+  padding: 14px 12px;
+  font-size: 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  color: var(--text-dim);
+}
+
+.recon-table td:first-child { color: var(--text); font-weight: 500; }
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.5px;
+}
+
+.status-badge.ok { background: rgba(34,197,94,0.1); color: var(--green); }
+.status-badge.short { background: rgba(239,68,68,0.1); color: var(--red); }
+.status-badge.flag { background: rgba(245,158,11,0.1); color: var(--yellow); }
+
+/* CHAT MOCKUP */
+.chat-mockup {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  margin-top: 60px;
+  max-width: 760px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.chat-header {
+  background: var(--surface2);
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.chat-avatar {
+  width: 32px; height: 32px;
+  background: var(--orange);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  color: white;
+}
+
+.chat-name {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.chat-status {
+  font-size: 12px;
+  color: var(--green);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.chat-status::before {
+  content: '';
+  width: 6px; height: 6px;
+  background: var(--green);
+  border-radius: 50%;
+}
+
+.chat-body {
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.chat-msg {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 85%;
+}
+
+.chat-msg.user { align-self: flex-end; align-items: flex-end; }
+.chat-msg.ai { align-self: flex-start; }
+
+.chat-bubble {
+  padding: 14px 18px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.chat-msg.user .chat-bubble {
+  background: var(--orange);
+  color: white;
+}
+
+.chat-msg.ai .chat-bubble {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.chat-bubble strong { color: var(--orange-light); font-weight: 600; }
+.chat-msg.user .chat-bubble strong { color: white; font-weight: 700; }
+
+.chat-time {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-dimmer);
+}
+
+/* STEPS */
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  margin-top: 60px;
+}
+
+.step {
+  padding: 48px 36px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  text-align: center;
+  transition: border-color 0.3s;
+  position: relative;
+}
+
+.step:hover { border-color: rgba(255,107,43,0.3); }
+
+.step-num {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 800;
+  font-size: 64px;
+  letter-spacing: -4px;
+  color: rgba(255,107,43,0.1);
+  line-height: 1;
+  margin-bottom: 20px;
+}
+
+.step-icon {
+  font-size: 36px;
+  margin-bottom: 20px;
+}
+
+.step h3 {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 700;
+  font-size: 19px;
+  letter-spacing: -0.5px;
+  margin-bottom: 12px;
+}
+
+.step p {
+  font-size: 14px;
+  color: var(--text-dim);
+  line-height: 1.7;
+}
+
+/* AUDIT CTA */
+.audit-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--orange);
+  padding: 72px 60px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.audit-section::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 500px; height: 300px;
+  background: radial-gradient(ellipse, rgba(255,107,43,0.1) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.audit-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 20px;
+  background: rgba(34,197,94,0.1);
+  border: 1px solid rgba(34,197,94,0.25);
+  color: var(--green);
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 28px;
+}
+
+.audit-section h2 {
+  font-size: clamp(32px, 4vw, 56px);
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.audit-section p {
+  font-size: 18px;
+  color: var(--text-dim);
+  max-width: 560px;
+  margin: 0 auto 40px;
+  line-height: 1.7;
+  position: relative;
+}
+
+.audit-features {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  flex-wrap: wrap;
+  margin-bottom: 40px;
+  position: relative;
+}
+
+.audit-feature {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text-dim);
+}
+
+.audit-feature::before {
+  content: '✓';
+  color: var(--green);
+  font-weight: 700;
+}
+
+/* PRICING */
+.pricing-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  margin-top: 60px;
+  max-width: 760px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.price-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 48px 40px;
+  position: relative;
+}
+
+.price-card.featured {
+  border-color: var(--orange);
+  background: rgba(255,107,43,0.04);
+}
+
+.price-badge {
+  position: absolute;
+  top: -1px; right: 28px;
+  background: var(--orange);
+  color: white;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 5px 12px;
+}
+
+.price-type {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-dimmer);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+.price-amount {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 800;
+  font-size: 52px;
+  letter-spacing: -3px;
+  margin-bottom: 4px;
+  line-height: 1;
+}
+
+.price-period {
+  font-size: 15px;
+  color: var(--text-dimmer);
+  margin-bottom: 24px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.price-features {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.price-features li {
+  font-size: 14px;
+  color: var(--text-dim);
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  line-height: 1.5;
+}
+
+.price-features li::before {
+  content: '→';
+  color: var(--orange);
+  flex-shrink: 0;
+  font-weight: 700;
+}
+
+/* TESTIMONIAL */
+.testimonial {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--orange);
+  padding: 48px 52px;
+  max-width: 760px;
+  margin: 60px auto 0;
+  position: relative;
+}
+
+.testimonial-quote {
+  font-size: 20px;
+  line-height: 1.7;
+  margin-bottom: 28px;
+  color: var(--text);
+}
+
+.testimonial-quote strong { color: var(--orange); font-weight: 500; }
+
+.testimonial-source {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-dimmer);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+/* VIDEO */
+.video-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  aspect-ratio: 16/9;
+  max-width: 860px;
+  margin: 60px auto 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 16px;
+  cursor: pointer;
+  transition: border-color 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.video-wrap::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(255,107,43,0.05) 0%, transparent 70%);
+}
+
+.video-wrap:hover { border-color: rgba(255,107,43,0.4); }
+
+.play-btn {
+  width: 72px; height: 72px;
+  background: var(--orange);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s, background 0.2s;
+  position: relative;
+  z-index: 1;
+}
+
+.video-wrap:hover .play-btn { transform: scale(1.08); }
+
+.play-btn svg { fill: white; width: 24px; }
+
+.video-label {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text-dimmer);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  position: relative;
+  z-index: 1;
+}
+
+/* BIG CTA */
+.big-cta {
+  text-align: center;
+  padding: 120px 40px;
+  position: relative;
+  overflow: hidden;
+}
+
+.big-cta::before {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 800px; height: 500px;
+  background: radial-gradient(ellipse, rgba(255,107,43,0.1) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.big-cta h2 {
+  font-size: clamp(40px, 5.5vw, 72px);
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.big-cta p {
+  font-size: 18px;
+  color: var(--text-dim);
+  margin-bottom: 48px;
+  position: relative;
+}
+
+/* FOOTER */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 32px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+footer p {
+  font-size: 13px;
+  color: var(--text-dimmer);
+}
+
+/* ANIMATIONS */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.65s ease, transform 0.65s ease;
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+
+/* COUNTER ANIMATION */
+.counter { display: inline; }
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  nav { padding: 16px 20px; }
+  .nav-link { display: none; }
+  .hero, .section, .big-cta { padding-left: 20px; padding-right: 20px; }
+  .problem-visual, .steps, .pricing-grid { grid-template-columns: 1fr; }
+  .recon-summary { grid-template-columns: repeat(2, 1fr); }
+  .stats-bar { flex-wrap: wrap; }
+  .stat { min-width: 50%; }
+  .audit-section { padding: 48px 28px; }
+  .testimonial { padding: 32px 28px; }
+  footer { flex-direction: column; gap: 12px; text-align: center; }
+}
 </style>
 </head>
 <body>
 
 <!-- NAV -->
 <nav>
-  <div class="nav-logo">Polly<span>AI</span></div>
-  <a href="#book-demo" class="nav-cta">Book a Demo</a>
+  <div class="logo">Polly<span>AI</span></div>
+  <div class="nav-right">
+    <a href="#how-it-works" class="nav-link">How it works</a>
+    <a href="#pricing" class="nav-link">Pricing</a>
+    <a href="#audit" class="btn btn-orange">Get Free Audit</a>
+  </div>
 </nav>
 
 <!-- HERO -->
 <section class="hero">
-  <div class="hero-bg"></div>
-  <div class="hero-bg-2"></div>
-  <div class="hero-label">Polly AI — Commission Capture System</div>
-  <h1>Stop Leaving<br>Money on the<br><em>Table.</em></h1>
-  <p class="hero-sub">Most insurance agencies are owed more than they're being paid. Our AI system finds every discrepancy, automatically — so you get paid what you're owed.</p>
+  <div class="hero-glow"></div>
+  <div class="hero-grid"></div>
+
+  <div class="hero-badge">For Independent Insurance Brokers</div>
+
+  <h1>Stop Losing Commission<br>Revenue You Never Knew<br><span class="highlight">Was Missing.</span></h1>
+
+  <p class="hero-sub">Polly AI automatically reconciles insurer statements against your expected commission and flags underpayments in real time — so you get paid every penny you're owed.</p>
+
   <div class="hero-actions">
-    <a href="#book-demo" class="btn-primary">Book a Free Demo</a>
-    <a href="#how-it-works" class="btn-secondary">See how it works →</a>
+    <a href="#audit" class="btn btn-orange btn-lg">Run a Free 3-Month Commission Audit</a>
+    <a href="#how-it-works" class="btn btn-outline btn-lg">See how it works</a>
   </div>
+
+  <p class="hero-disclaimer"><strong>Zero-risk revenue discovery.</strong> We find what you're owed — no payment required until you see the results.</p>
 </section>
 
-<!-- PROOF BAR -->
-<div class="proof-bar">
-  <div class="proof-item">
-    <div class="proof-number">$5,000+</div>
-    <div class="proof-label">Recovered in 7 months</div>
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="stat">
+    <div class="stat-value"><span class="stat-accent">$5,000<span style="font-size:22px;letter-spacing:0">+</span></span></div>
+    <div class="stat-label">Recovered in 7 months<br>for one agency</div>
   </div>
-  <div class="proof-divider"></div>
-  <div class="proof-item">
-    <div class="proof-number">95%+</div>
-    <div class="proof-label">Reconciliation accuracy</div>
+  <div class="stat">
+    <div class="stat-value">95<span class="stat-accent" style="font-size:22px">%+</span></div>
+    <div class="stat-label">Reconciliation<br>accuracy</div>
   </div>
-  <div class="proof-divider"></div>
-  <div class="proof-item">
-    <div class="proof-number">Any Format</div>
-    <div class="proof-label">PDF, XL, CSV, Google Doc</div>
+  <div class="stat">
+    <div class="stat-value" style="font-size:24px; letter-spacing:-1px;">Any Format</div>
+    <div class="stat-label">PDF · XL · CSV<br>Google Doc · iMessage</div>
   </div>
-  <div class="proof-divider"></div>
-  <div class="proof-item">
-    <div class="proof-number">Minutes</div>
-    <div class="proof-label">Not hours or days</div>
+  <div class="stat">
+    <div class="stat-value" style="font-size:24px; letter-spacing:-1px;">Minutes</div>
+    <div class="stat-label">Not 20-40 hours<br>every month</div>
   </div>
 </div>
 
-<!-- PROBLEM SECTION -->
-<section class="section">
-  <div class="section-label">The Problem</div>
-  <h2>Your carriers are<br>not always paying<br>you correctly.</h2>
-  <div class="problem-grid">
-    <div class="problem-card reveal">
-      <div class="problem-icon">📄</div>
-      <h3>Statements in Every Format</h3>
-      <p>PDFs, spreadsheets, Google Docs, even iMessages. Every carrier sends data differently and reconciling it manually takes hours.</p>
-    </div>
-    <div class="problem-card reveal">
-      <div class="problem-icon">💸</div>
-      <h3>Missed Payments You Never Catch</h3>
-      <p>Small discrepancies compound over months. Most agencies never discover what they're owed because they simply don't have the time to check.</p>
-    </div>
-    <div class="problem-card reveal">
-      <div class="problem-icon">⏱️</div>
-      <h3>Hours Lost Every Month</h3>
-      <p>Your team spends 20-40 hours a month on manual reconciliation. That's time that should be spent growing your book of business.</p>
+<!-- PROBLEM -->
+<div style="background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 100px 40px;">
+  <div class="section section-center" style="padding: 0;">
+    <div class="label reveal">The Problem</div>
+    <h2 class="reveal">Most brokers are being underpaid.<br>They just don't know it yet.</h2>
+    <p class="section-sub reveal">Carriers make errors. Statements arrive in different formats. Without a system checking every line, revenue leaks quietly every single month.</p>
+
+    <div class="problem-visual reveal">
+      <div class="problem-side bad">
+        <div class="side-label bad">✗ Without Polly AI</div>
+        <div class="side-items">
+          <div class="side-item"><span class="icon">😤</span>20-40 hours/month manually cross-referencing statements</div>
+          <div class="side-item"><span class="icon">📬</span>Carriers sending PDFs, XLs, Google Docs, even iMessages</div>
+          <div class="side-item"><span class="icon">💸</span>Small discrepancies go unnoticed for months or years</div>
+          <div class="side-item"><span class="icon">🔍</span>No way to query historical data without digging through files</div>
+          <div class="side-item"><span class="icon">😬</span>Underpayments never disputed because you can't prove them</div>
+        </div>
+      </div>
+      <div class="problem-side good">
+        <div class="side-label good">✓ With Polly AI</div>
+        <div class="side-items">
+          <div class="side-item"><span class="icon">⚡</span>Statements processed automatically in minutes</div>
+          <div class="side-item"><span class="icon">📥</span>Any format accepted — we configure around your carriers</div>
+          <div class="side-item"><span class="icon">🎯</span>Every discrepancy flagged with the exact shortfall amount</div>
+          <div class="side-item"><span class="icon">💬</span>Ask questions about your data in plain English, get instant answers</div>
+          <div class="side-item"><span class="icon">📨</span>Dispute emails drafted automatically with evidence attached</div>
+        </div>
+      </div>
     </div>
   </div>
-</section>
+</div>
+
+<!-- RECONCILIATION MOCKUP -->
+<div style="padding: 100px 40px; background: var(--bg);">
+  <div class="section section-center" style="padding: 0; max-width: 1000px;">
+    <div class="label reveal">Live Example</div>
+    <h2 class="reveal">This is what your reconciliation<br>report looks like.</h2>
+    <p class="section-sub reveal">Clean, accurate, actionable. Every carrier. Every month. Automatically.</p>
+
+    <div class="mockup-container reveal">
+      <div class="mockup-bar">
+        <div class="mockup-dot" style="background:#EF4444"></div>
+        <div class="mockup-dot" style="background:#F59E0B"></div>
+        <div class="mockup-dot" style="background:#22C55E"></div>
+        <div class="mockup-title">commission_reconciliation_jan_2026.report</div>
+      </div>
+      <div class="mockup-body">
+        <div class="recon-header">
+          <div class="recon-title">January 2026 — Commission Report</div>
+          <div class="recon-date">Generated: 01 Feb 2026 · 4 carriers</div>
+        </div>
+        <div class="recon-summary">
+          <div class="recon-stat">
+            <div class="recon-stat-label">Total Owed</div>
+            <div class="recon-stat-value">$24,840</div>
+          </div>
+          <div class="recon-stat">
+            <div class="recon-stat-label">Total Received</div>
+            <div class="recon-stat-value green">$23,190</div>
+          </div>
+          <div class="recon-stat">
+            <div class="recon-stat-label">Shortfall Found</div>
+            <div class="recon-stat-value red">$1,650</div>
+          </div>
+          <div class="recon-stat">
+            <div class="recon-stat-label">Flags Raised</div>
+            <div class="recon-stat-value orange">3</div>
+          </div>
+        </div>
+        <table class="recon-table">
+          <thead>
+            <tr>
+              <th>Carrier</th>
+              <th>Expected</th>
+              <th>Received</th>
+              <th>Difference</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Progressive</td>
+              <td>$8,420</td>
+              <td>$8,420</td>
+              <td>—</td>
+              <td><span class="status-badge ok">✓ Correct</span></td>
+            </tr>
+            <tr>
+              <td>State Farm</td>
+              <td>$7,200</td>
+              <td>$6,540</td>
+              <td style="color:var(--red)">-$660</td>
+              <td><span class="status-badge short">⚠ Short</span></td>
+            </tr>
+            <tr>
+              <td>Allstate</td>
+              <td>$5,980</td>
+              <td>$5,000</td>
+              <td style="color:var(--red)">-$980</td>
+              <td><span class="status-badge short">⚠ Short</span></td>
+            </tr>
+            <tr>
+              <td>Nationwide</td>
+              <td>$3,240</td>
+              <td>$3,230</td>
+              <td style="color:var(--yellow)">-$10</td>
+              <td><span class="status-badge flag">⚑ Review</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- AI CHAT -->
+<div style="padding: 0 40px 100px; background: var(--bg);">
+  <div class="section section-center" style="padding: 0; max-width: 1000px;">
+    <div class="label reveal">AI Interface</div>
+    <h2 class="reveal">Your commission data becomes<br>a database you can talk to.</h2>
+    <p class="section-sub reveal">Every statement is stored and indexed. Ask anything about your money — get an instant answer. No dashboards to learn.</p>
+
+    <div class="chat-mockup reveal">
+      <div class="chat-header">
+        <div class="chat-avatar">P</div>
+        <div>
+          <div class="chat-name">Polly AI</div>
+          <div class="chat-status">Online — your data is ready</div>
+        </div>
+      </div>
+      <div class="chat-body">
+        <div class="chat-msg user">
+          <div class="chat-bubble">Which carrier has underpaid us the most this year?</div>
+          <div class="chat-time">You · just now</div>
+        </div>
+        <div class="chat-msg ai">
+          <div class="chat-bubble">State Farm has the most underpayments in 2026 — <strong>7 instances totalling $2,940</strong>. The most recent was January ($660 short on policy group SF-4421). Want me to draft a dispute email with the full breakdown?</div>
+          <div class="chat-time">Polly AI · just now</div>
+        </div>
+        <div class="chat-msg user">
+          <div class="chat-bubble">Yes, draft the email to State Farm.</div>
+          <div class="chat-time">You · just now</div>
+        </div>
+        <div class="chat-msg ai">
+          <div class="chat-bubble">Done. <strong>Subject: Commission Discrepancy — January 2026 (Policy Group SF-4421).</strong> The email includes the full reconciliation breakdown, dates, policy numbers, and the exact amounts owed. Ready to review and send.</div>
+          <div class="chat-time">Polly AI · just now</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- HOW IT WORKS -->
-<section class="how-section" id="how-it-works">
-  <div class="section-label">How It Works</div>
-  <h2>Three steps.<br>Zero manual work.</h2>
-  <div class="steps">
-    <div class="step reveal">
-      <div class="step-number">01</div>
-      <h3>Send Your Statements</h3>
-      <p>Upload your commission statements in any format — PDF, XL, CSV, Google Doc. We configure the system specifically around your carriers.</p>
-    </div>
-    <div class="step reveal">
-      <div class="step-number">02</div>
-      <h3>AI Does the Work</h3>
-      <p>Our system reads every line, matches it against what you're owed, and automatically flags every discrepancy and missed payment.</p>
-    </div>
-    <div class="step reveal">
-      <div class="step-number">03</div>
-      <h3>Get Your Report</h3>
-      <p>You receive a clean reconciliation report showing exactly what's been paid correctly, what's short, and what's missing entirely.</p>
-    </div>
-  </div>
-</section>
-
-<!-- AI INTERFACE SECTION -->
-<section class="section" style="background: var(--black); padding-top: 0;">
-  <div class="section-label">Beyond Reconciliation</div>
-  <h2>Your commission data<br>becomes a <em style="font-style:normal; color: var(--orange);">living database.</em></h2>
-  <p style="font-size: 18px; color: rgba(245,244,240,0.5); max-width: 560px; margin: 24px 0 60px; line-height: 1.7;">Every statement we process gets stored and indexed. Then you can ask questions about your own data in plain English — no reports to run, no spreadsheets to dig through.</p>
-
-  <div class="chat-demo reveal" style="max-width: 700px; background: var(--gray); border: 1px solid rgba(255,255,255,0.06); padding: 40px; position: relative;">
-    <div style="font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--gray-light); margin-bottom: 32px;">AI Interface — Live Example</div>
-
-    <div style="display: flex; flex-direction: column; gap: 20px;">
-      <div style="display: flex; justify-content: flex-end;">
-        <div style="background: var(--orange); color: var(--black); padding: 14px 20px; font-size: 14px; max-width: 80%; line-height: 1.5;">"What did Progressive owe us in Q3 vs what they actually paid?"</div>
+<div style="background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 100px 40px;" id="how-it-works">
+  <div class="section section-center" style="padding: 0;">
+    <div class="label reveal">How It Works</div>
+    <h2 class="reveal">Up and running in 48 hours.</h2>
+    <p class="section-sub reveal">We do the heavy lifting. You get a system configured specifically around your carriers and your workflow.</p>
+    <div class="steps">
+      <div class="step reveal">
+        <div class="step-num">01</div>
+        <div class="step-icon">📤</div>
+        <h3>Send Your Statements</h3>
+        <p>Share your last 3 months of commission statements in any format. PDF, XL, CSV, Google Doc — whatever your carriers send.</p>
       </div>
-      <div style="display: flex; justify-content: flex-start;">
-        <div style="background: var(--black); border: 1px solid rgba(255,255,255,0.08); padding: 14px 20px; font-size: 14px; max-width: 80%; line-height: 1.6; color: rgba(245,244,240,0.75);">Progressive owed <strong style="color: var(--white);">$14,820</strong> in Q3. They paid <strong style="color: var(--white);">$13,440</strong>. That's a shortfall of <strong style="color: var(--orange);">$1,380</strong> across 3 policies — I've flagged the details in your Q3 report.</div>
+      <div class="step reveal reveal-delay-1">
+        <div class="step-num">02</div>
+        <div class="step-icon">⚙️</div>
+        <h3>We Configure Your System</h3>
+        <p>We build custom extraction rules for each of your carriers. Your system is bespoke — not a generic template.</p>
       </div>
-      <div style="display: flex; justify-content: flex-end;">
-        <div style="background: var(--orange); color: var(--black); padding: 14px 20px; font-size: 14px; max-width: 80%; line-height: 1.5;">"Which carrier has had the most errors this year?"</div>
-      </div>
-      <div style="display: flex; justify-content: flex-start;">
-        <div style="background: var(--black); border: 1px solid rgba(255,255,255,0.08); padding: 14px 20px; font-size: 14px; max-width: 80%; line-height: 1.6; color: rgba(245,244,240,0.75);">State Farm has had <strong style="color: var(--white);">7 discrepancies</strong> this year totalling <strong style="color: var(--orange);">$2,940</strong> in underpayments. Would you like me to draft a dispute summary you can send them?</div>
+      <div class="step reveal reveal-delay-2">
+        <div class="step-num">03</div>
+        <div class="step-icon">💰</div>
+        <h3>We Find What You're Owed</h3>
+        <p>Your free audit report is ready in 48 hours — showing every discrepancy, every shortfall, and exactly how much you're owed.</p>
       </div>
     </div>
-  </div>
-
-  <div class="problem-grid reveal" style="margin-top: 40px; grid-template-columns: repeat(3, 1fr);">
-    <div class="problem-card">
-      <div class="problem-icon">💬</div>
-      <h3>Ask in Plain English</h3>
-      <p>No dashboards to learn. Just ask what you want to know about your commissions and get a direct answer.</p>
-    </div>
-    <div class="problem-card">
-      <div class="problem-icon">🗂️</div>
-      <h3>Every Statement Indexed</h3>
-      <p>All your historical data is stored and searchable. Go back months or years and find any transaction instantly.</p>
-    </div>
-    <div class="problem-card">
-      <div class="problem-icon">📨</div>
-      <h3>Draft Dispute Emails</h3>
-      <p>When a carrier underpays, the system can draft the dispute communication for you with the exact figures attached.</p>
-    </div>
-  </div>
-</section>
-
-<!-- VIDEO SECTION -->
-<div class="video-section" style="padding-top: 120px;">
-  <div class="section-label" style="text-align:center; margin-bottom: 16px;">See It In Action</div>
-  <h2 class="reveal" style="font-family: 'Syne', sans-serif; font-weight: 800; font-size: clamp(28px, 3vw, 40px); letter-spacing: -1.5px; text-align: center; margin-bottom: 48px;">Watch the Commission<br>Capture System work.</h2>
-  <div class="video-container reveal" onclick="alert('Add your Loom video embed here')">
-    <div class="play-button">
-      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M8 5v14l11-7z"/></svg>
-    </div>
-    <div class="video-label">Watch 3-minute demo</div>
   </div>
 </div>
 
-<!-- PROOF SECTION -->
-<section class="proof-section">
-  <div class="section-label">Real Results</div>
-  <div class="proof-card reveal">
-    <p class="proof-quote">We recovered <strong>over $5,000 in underpaid commissions</strong> across just 7 months of statements we thought had already been processed correctly. The system found discrepancies we would never have caught manually.</p>
-    <p class="proof-meta">Independent Agency — California, USA</p>
+
+
+<!-- SECURITY -->
+<div style="background: var(--bg); border-top: 1px solid var(--border); padding: 100px 40px;">
+  <div class="section section-center" style="padding: 0;">
+    <div class="label reveal">Security & Trust</div>
+    <h2 class="reveal">Your data stays yours.<br>Always.</h2>
+    <p class="section-sub reveal">We understand you're sharing sensitive financial data. Here's exactly how we protect it.</p>
+
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; margin-top: 60px;">
+
+      <div class="step reveal" style="text-align:left; padding: 40px 36px;">
+        <div style="font-size: 32px; margin-bottom: 20px;">🔒</div>
+        <h3 style="margin-bottom: 12px;">End-to-End Encrypted</h3>
+        <p>Every statement you send and every report we generate is encrypted in transit and at rest. Your commission data is never transmitted in plain text.</p>
+      </div>
+
+      <div class="step reveal reveal-delay-1" style="text-align:left; padding: 40px 36px;">
+        <div style="font-size: 32px; margin-bottom: 20px;">🇪🇺</div>
+        <h3 style="margin-bottom: 12px;">GDPR Compliant</h3>
+        <p>We are fully compliant with GDPR. Your data is never sold, never shared with third parties, and you can request full deletion at any time.</p>
+      </div>
+
+      <div class="step reveal reveal-delay-2" style="text-align:left; padding: 40px 36px;">
+        <div style="font-size: 32px; margin-bottom: 20px;">👁️</div>
+        <h3 style="margin-bottom: 12px;">You Stay in Control</h3>
+        <p>Nothing is actioned without your review. Every discrepancy is flagged for your approval before any dispute is raised with a carrier.</p>
+      </div>
+
+      <div class="step reveal" style="text-align:left; padding: 40px 36px;">
+        <div style="font-size: 32px; margin-bottom: 20px;">🏦</div>
+        <h3 style="margin-bottom: 12px;">No Client Data Required</h3>
+        <p>We only process your commission statements — not your client records, policy files, or personal data. We see what carriers owe you, nothing else.</p>
+      </div>
+
+      <div class="step reveal reveal-delay-1" style="text-align:left; padding: 40px 36px;">
+        <div style="font-size: 32px; margin-bottom: 20px;">📋</div>
+        <h3 style="margin-bottom: 12px;">Signed Data Agreement</h3>
+        <p>Before we process a single statement, you receive and sign a clear data processing agreement. No ambiguity about what we access and why.</p>
+      </div>
+
+      <div class="step reveal reveal-delay-2" style="text-align:left; padding: 40px 36px;">
+        <div style="font-size: 32px; margin-bottom: 20px;">🗑️</div>
+        <h3 style="margin-bottom: 12px;">Delete Anytime</h3>
+        <p>Cancel at any time and we delete all your data within 30 days. No lock-in, no retained copies, no questions asked.</p>
+      </div>
+
+    </div>
+
+    <div style="margin-top: 48px; padding: 32px 40px; background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--green); max-width: 680px; margin-left: auto; margin-right: auto;" class="reveal">
+      <p style="font-size: 15px; color: var(--text-dim); line-height: 1.7;">
+        <strong style="color: var(--text);">Have a specific security question?</strong> We're happy to walk you through our data handling process on a call before you share anything. Most brokers ask — it's the right thing to do.
+      </p>
+    </div>
+
   </div>
-</section>
+</div>
+
+<!-- AUDIT CTA -->
+<div style="padding: 100px 40px;" id="audit">
+  <div class="audit-section reveal">
+    <div class="audit-tag">Zero-Risk Revenue Discovery</div>
+    <h2>Find Your Missing<br>Commission Revenue. Free.</h2>
+    <p>We run a full reconciliation of your last 3 months of insurer statements at zero cost. You'll see exactly what you've been underpaid — before you commit to anything.</p>
+    <div class="audit-features">
+      <div class="audit-feature">3 months audited free</div>
+      <div class="audit-feature">No credit card required</div>
+      <div class="audit-feature">Results in 48 hours</div>
+      <div class="audit-feature">Keep the report regardless</div>
+    </div>
+    <a href="https://calendly.com" class="btn btn-orange btn-lg">Run My Free Commission Audit</a>
+    <p style="margin-top: 16px; font-size: 13px; color: var(--text-dimmer);">20 minutes. We'll handle everything after.</p>
+  </div>
+</div>
+
+<!-- TESTIMONIAL -->
+<div style="padding: 0 40px 100px;">
+  <div class="testimonial reveal" style="max-width: 760px; margin: 0 auto;">
+    <p class="testimonial-quote">"We recovered <strong>over $5,000 in underpaid commissions</strong> across just 7 months of statements we thought had already been processed correctly. The system found discrepancies we would never have caught manually."</p>
+    <div class="testimonial-source">Independent Insurance Agency — California, USA</div>
+  </div>
+</div>
+
+<!-- VIDEO -->
+<div style="padding: 0 40px 100px; background: var(--bg);">
+  <div class="section section-center" style="padding: 0;">
+    <div class="label reveal">Demo</div>
+    <h2 class="reveal">See it working live.</h2>
+    <div class="video-wrap reveal" onclick="alert('Add your Loom embed here')">
+      <div class="play-btn">
+        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      </div>
+      <div class="video-label">Watch 3-minute demo</div>
+    </div>
+  </div>
+</div>
 
 <!-- PRICING -->
-<section class="pricing-section" id="pricing">
-  <div class="section-label">Pricing</div>
-  <h2>Simple, transparent<br>pricing.</h2>
-  <div class="pricing-grid">
-    <div class="pricing-card reveal">
-      <div class="pricing-label">Setup</div>
-      <div class="pricing-price">€2,500 <span>one-time</span></div>
-      <p class="pricing-desc">Everything needed to get your system live and configured for your specific carriers.</p>
-      <ul class="pricing-features">
-        <li>Full carrier configuration</li>
-        <li>3 months historical data processed free</li>
-        <li>Team training included</li>
-        <li>First month personally monitored</li>
-      </ul>
-    </div>
-    <div class="pricing-card featured reveal">
-      <div class="pricing-badge">Most Popular</div>
-      <div class="pricing-label">Monthly</div>
-      <div class="pricing-price">€750 <span>/month</span></div>
-      <p class="pricing-desc">Ongoing automated reconciliation across all your carriers, every month.</p>
-      <ul class="pricing-features">
-        <li>Unlimited statement processing</li>
-        <li>AI reconciliation at 95%+ accuracy</li>
-        <li>Exception flagging and resolution</li>
-        <li>Clean monthly reports</li>
-        <li>Full money-back guarantee</li>
-      </ul>
+<div style="background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 100px 40px;" id="pricing">
+  <div class="section section-center" style="padding: 0;">
+    <div class="label reveal">Pricing</div>
+    <h2 class="reveal">Transparent. Simple.<br>Pays for itself immediately.</h2>
+    <p class="section-sub reveal">The average agency recovers more than one month's fee in their first audit alone.</p>
+    <div class="pricing-grid">
+      <div class="price-card reveal">
+        <div class="price-type">Setup — One Time</div>
+        <div class="price-amount">€2,500</div>
+        <div class="price-period">Everything to get you live and configured</div>
+        <ul class="price-features">
+          <li>Custom carrier configuration</li>
+          <li>3 months historical data processed free</li>
+          <li>Team training included</li>
+          <li>First month personally monitored</li>
+        </ul>
+      </div>
+      <div class="price-card featured reveal reveal-delay-1">
+        <div class="price-badge">Most Popular</div>
+        <div class="price-type">Monthly</div>
+        <div class="price-amount">€750</div>
+        <div class="price-period">per month · cancel anytime</div>
+        <ul class="price-features">
+          <li>Unlimited statement processing</li>
+          <li>AI reconciliation at 95%+ accuracy</li>
+          <li>Full AI chat interface for your data</li>
+          <li>Automated dispute email drafting</li>
+          <li>Monthly reconciliation reports</li>
+          <li>Full money-back guarantee</li>
+        </ul>
+      </div>
     </div>
   </div>
-</section>
+</div>
 
-<!-- CTA -->
-<section class="cta-section" id="book-demo">
-  <h2 class="reveal">Find out what<br>you're owed.</h2>
-  <p class="reveal">Book a free 20-minute demo. We'll show you exactly how it works for your agency.</p>
-  <a href="https://calendly.com" class="btn-primary reveal" style="font-size: 16px; padding: 20px 52px;">Book Your Free Demo</a>
-</section>
+
+
+<!-- OBJECTIONS / FAQ -->
+<div style="background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 100px 40px;">
+  <div class="section section-center" style="padding: 0; max-width: 760px;">
+    <div class="label reveal">Common Questions</div>
+    <h2 class="reveal">Things brokers ask<br>before getting started.</h2>
+
+    <div style="margin-top: 60px; display: flex; flex-direction: column; gap: 2px;" class="reveal">
+
+      <div style="background: var(--bg); border: 1px solid var(--border); padding: 32px 36px;">
+        <div style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 17px; margin-bottom: 12px; letter-spacing: -0.3px;">"Our carriers send statements in completely different formats."</div>
+        <p style="font-size: 15px; color: var(--text-dim); line-height: 1.7;">That's exactly why we exist. PDF, Excel, CSV, Google Docs — we configure your system around whatever your carriers send. You don't change anything. We adapt to you.</p>
+      </div>
+
+      <div style="background: var(--bg); border: 1px solid var(--border); padding: 32px 36px;">
+        <div style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 17px; margin-bottom: 12px; letter-spacing: -0.3px;">"We already have someone checking our commissions manually."</div>
+        <p style="font-size: 15px; color: var(--text-dim); line-height: 1.7;">Manual checking is thorough but it misses things — especially small, repeated discrepancies across multiple carriers over time. Our California client thought their commissions were fine too. The audit uncovered $5,000+ in 7 months they would never have caught.</p>
+      </div>
+
+      <div style="background: var(--bg); border: 1px solid var(--border); padding: 32px 36px;">
+        <div style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 17px; margin-bottom: 12px; letter-spacing: -0.3px;">"What if the system makes a mistake?"</div>
+        <p style="font-size: 15px; color: var(--text-dim); line-height: 1.7;">Every discrepancy is flagged for your review before anything is actioned. You stay in control at every step. The system finds — you decide. Nothing goes to a carrier without your approval.</p>
+      </div>
+
+      <div style="background: var(--bg); border: 1px solid var(--border); padding: 32px 36px;">
+        <div style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 17px; margin-bottom: 12px; letter-spacing: -0.3px;">"We're a small agency — is this really worth it for us?"</div>
+        <p style="font-size: 15px; color: var(--text-dim); line-height: 1.7;">Smaller agencies are often hit harder by underpayments because every missed commission is a larger percentage of revenue. Size doesn't protect you from carrier errors — accuracy does.</p>
+      </div>
+
+      <div style="background: var(--bg); border: 1px solid var(--border); padding: 32px 36px;">
+        <div style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 17px; margin-bottom: 12px; letter-spacing: -0.3px;">"How much time does setup take on our end?"</div>
+        <p style="font-size: 15px; color: var(--text-dim); line-height: 1.7;">Minimal. You send us your last 3 months of statements. We configure everything and deliver your first report within 48 hours. There's no software to install, no system to learn, and no disruption to how you currently work.</p>
+      </div>
+
+      <div style="background: var(--bg); border: 1px solid var(--border); padding: 32px 36px;">
+        <div style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 17px; margin-bottom: 12px; letter-spacing: -0.3px;">"How do I know it's worth paying for before I commit?"</div>
+        <p style="font-size: 15px; color: var(--text-dim); line-height: 1.7;">You don't have to take our word for it. The free 3-month audit shows you exactly what discrepancies exist and what you're owed — before you spend anything. If we don't find anything, you've lost nothing. If we do, the system pays for itself immediately.</p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- FINAL CTA -->
+<div class="big-cta">
+  <h2 class="reveal">Ready to find your<br>missing revenue?</h2>
+  <p class="reveal">We'll show you exactly what your insurers owe you — before you spend a single euro.</p>
+  <a href="https://calendly.com" class="btn btn-orange btn-lg reveal">Book Your Free Audit</a>
+</div>
 
 <!-- FOOTER -->
 <footer>
   <div class="logo">Polly<span>AI</span></div>
-  <p>© 2026 Polly AI</p>
+  <p>© 2026 Polly AI · Commission Capture System</p>
 </footer>
 
 <script>
-  // Scroll reveal
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('visible');
-      }
-    });
-  }, { threshold: 0.1 });
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) entry.target.classList.add('visible');
+  });
+}, { threshold: 0.08 });
 
-  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 </script>
 </body>
 </html>
